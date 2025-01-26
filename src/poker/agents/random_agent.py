@@ -18,6 +18,7 @@ class RandomAgent:
         Решение: случайный выбор между `fold`, `call`, `raise`.
         """
         if self.money <= 0:
+            decision = "fold"
             return "fold", 0
         decision = "fold"
         if self.money < min_bet:
@@ -39,13 +40,9 @@ class RandomAgent:
                 call_amount = self.money
             else:
                 call_amount = min_bet - self.current_bet
-            self.money -= call_amount
-            self.current_bet += call_amount
             return "call", call_amount
         elif decision == "raise":
-            raise_amount = random.randint(min_bet, min(self.money, min_bet + 100))
-            self.money -= raise_amount
-            self.current_bet += raise_amount
+            raise_amount = random.randint(min_bet, self.money)
             return "raise", raise_amount
 
     def reset(self):

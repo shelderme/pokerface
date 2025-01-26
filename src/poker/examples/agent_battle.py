@@ -23,7 +23,7 @@ def play_game():
     # Раунд ставок
     min_bet = 10
 
-    manage_betting_rounds(agents=agents, min_bet=min_bet, game=game)
+    manage_betting_rounds(agents=agents, min_bet=min_bet, small_blind=10, big_blind=20, game=game)
    
     # Определяем победителя
     winner = game.determine_winner()
