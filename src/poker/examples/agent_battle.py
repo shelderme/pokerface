@@ -5,7 +5,7 @@ from src.poker.agents.random_agent import RandomAgent
 from src.poker.poker_game.betting import manage_betting_rounds
 def play_game():
     # Создаем агентов
-    num_agents = 3
+    num_agents = 6
     agents = [RandomAgent(f"Agent {i+1}") for i in range(num_agents)]
 
     # Создаем игру
@@ -26,8 +26,6 @@ def play_game():
     manage_betting_rounds(agents=agents, min_bet=min_bet, small_blind=10, big_blind=20, game=game)
    
     # Определяем победителя
-    winner = game.determine_winner()
-    print(f"\nПобедитель: {winner.name}")
 
     # Обновляем состояние игры
     game.reset_game()

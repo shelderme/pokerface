@@ -1,2 +1,2 @@
 
-        print(f"{agent.name} получил карты: {ag
+    min_bet = 10

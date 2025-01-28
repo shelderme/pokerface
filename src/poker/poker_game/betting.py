@@ -1,6 +1,51 @@
 from typing import List
 from src.poker.agents.random_agent import RandomAgent
 from src.poker.poker_game.game import PokerGame
+from src.poker.poker_game.hand_evaluation import evaluate_hand  # Реализация функций для вычисления силы руки
+
+def determine_winner(agents: List[RandomAgent], community_cards: List[str]) -> List[RandomAgent]:
+    """
+    Определяет победителя (или победителей в случае ничьей) по комбинациям.
+
+    Args:
+        agents (List[RandomAgent]): Список агентов.
+        community_cards (List[str]): Общие карты.
+
+    Returns:
+        List[RandomAgent]: Список победителей.
+    """
+    best_score = None
+    winners = []
+
+    for agent in agents:
+        if agent.active:
+            # Используем функцию evaluate_hand для расчета силы руки
+            hand_score = evaluate_hand(agent.cards + community_cards)
+            print(f"{agent.name} комбинация: {hand_score['combination_name']} (оценка: {hand_score['score']})")
+
+            # Сравниваем текущую комбинацию с лучшей
+            if best_score is None or hand_score['score'] > best_score:
+                best_score = hand_score['score']
+                winners = [agent]
+            elif hand_score['score'] == best_score:
+                winners.append(agent)
+
+    return winners
+
+def distribute_pot(winners: List[RandomAgent], pot: int):
+    """
+    Распределяет банк между победителями.
+
+    Args:
+        winners (List[RandomAgent]): Список победителей.
+        pot (int): Размер банка.
+    """
+    share = pot // len(winners)
+    for winner in winners:
+        winner.money += share
+        print(f"{winner.name} получает {share} из банка!")
+    if pot % len(winners) > 0:
+        print(f"Остаток банка {pot % len(winners)} остаётся в следующем раунде.")
 
 def betting_round(agents: List[RandomAgent], min_bet: int, current_bet: int, pot: int, community_cards: List[str], small_blind: int, big_blind: int, round_number: int):
     """
@@ -51,15 +96,20 @@ def betting_round(agents: List[RandomAgent], min_bet: int, current_bet: int, pot
 
     # Игроки делают ходы начиная с игрока после большого блайнда
     pending_action = True
+    flag = 0
     while pending_action:
         pending_action = False
-        for agent in agents[2:] + [small_blind_agent, big_blind_agent]:
+        for agent in agents:
+            if round_number == 0 and (agent == small_blind_agent or agent == big_blind_agent) and flag != 2:
+                flag += 1
+                continue
+
             if not agent.active:
                 continue
             if handle_one_player_left(agents=agents, pot=pot):
                 return pot, current_bet
             amount_to_call = current_bet - agent.current_bet
-
+            print(f"сколько надо кольнуть: {amount_to_call}\nтекущая ставака: {current_bet}\nтекущая ставка агента:{agent.current_bet}")
             # Агент принимает решение
             decision, amount = agent.make_decision(
                 community_cards=community_cards,
@@ -101,10 +151,10 @@ def betting_round(agents: List[RandomAgent], min_bet: int, current_bet: int, pot
                         print(f"{agent.name} решил raise (ставка: {agent.current_bet}, остаток: {agent.money})")
                         pending_action = True
                     else:
-                        print(f"{agent.name} не может сделать raise на {amount}. Выбывает из игры.")
+                        print(f"{agent.name} не может сделать raise на {amount}. Делает чек.")
                         agent.active = False
                 else:
-                    print(f"{agent.name} не может сделать raise на меньшую сумму. Пропускает ход.")
+                    print(f"{agent.name} не может сделать raise на меньшую сумму.")
                     agent.active = False
 
             elif decision == "check":
@@ -185,5 +235,12 @@ def manage_betting_rounds(agents: List[RandomAgent], min_bet: int, game: PokerGa
         # Проверяем, остался ли только один игрок
         if handle_one_player_left(agents, pot):
             return
-
+    
+    active_agents = check_active_players(agents)
+    if len(active_agents) > 1:
+        print("Все дошли до шоудауна. Определяем победителя...")
+        winners = determine_winner(active_agents, game.community_cards)
+        distribute_pot(winners, pot)
+    else:
+        print("Игроков недостаточно для шоудауна. Игра завершена.")
     print("Ставки завершены. Продолжаем игру!")

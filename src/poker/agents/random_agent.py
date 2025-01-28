@@ -20,29 +20,29 @@ class RandomAgent:
         if self.money <= 0:
             decision = "fold"
             return "fold", 0
-        decision = "fold"
-        if self.money < min_bet:
-            actions = ["call", "fold"]
+        decision = []
+        if current_bet == self.current_bet:  # Возможен чек
+            actions = ["check", "raise"]
             decision = random.choice(actions)
-        elif self.money == min_bet:
+        elif self.money <= min_bet:
             actions = ["fold", "call"]
             decision = random.choice(actions)
-        else: 
+        else:
             actions = ["fold", "call", "raise"]
             decision = random.choice(actions)
 
         if decision == "fold":
             self.active = False
             return "fold", 0
+        elif decision == "check":
+            return "check", 0
         elif decision == "call":
-            call_amount = min_bet
-            if self.money < call_amount:
+            call_amount = current_bet - self.current_bet
+            if call_amount > self.money:
                 call_amount = self.money
-            else:
-                call_amount = min_bet - self.current_bet
             return "call", call_amount
         elif decision == "raise":
-            raise_amount = random.randint(min_bet, self.money)
+            raise_amount = random.randint(current_bet, current_bet * 3)
             return "raise", raise_amount
 
     def reset(self):
