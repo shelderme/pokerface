@@ -38,4 +38,4 @@ class PokerGame:
         self.pot = 0
         for player in self.players:
             player.reset()
-        self.deck.reshuffle()
+        self.deck.shuffle()
